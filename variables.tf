@@ -32,20 +32,20 @@ variable "engine_mode" {
 variable "availability_zones" {
     description = "value"
     type = list(string)
-    default = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d", "us-east-1e"]
+    default = ["us-east-1a", "us-east-1b", "us-east-1c"]
 }
 
 variable "database_name" {
     description = "Name for an automatically created database on cluster creation; default to `fd-demo`"
     type = string
-    default = "fd-demo"
+    default = "fddemo"
       
 }
 
 variable "master_username" {
   description = "value"
   type = string
-  default = "fd-root"
+  default = "fdroot"
 }
 
 variable "master_password" {
@@ -167,6 +167,13 @@ variable "restore_to_point_in_time" {
   description = "Map of nested attributes for cloning Aurora cluster"
   type        = map(string)
   default     = {}
+}
+
+variable "instance_identifier" {
+    description = "value"
+    type = string
+    default = "demo"
+  
 }
 
 variable "instance_class" {

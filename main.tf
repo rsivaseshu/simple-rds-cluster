@@ -2,9 +2,9 @@ locals {
   is_serverless     = var.engine_mode == "serverless"
   engine_version    = local.is_serverless ? null : var.engine_version
   
-  db_subnet_group_name = var.create_db_subnet_group ? aws_db_subnet_group.this[*].name : var.db_subnet_group_name
+  db_subnet_group_name = var.create_db_subnet_group ? join("", aws_db_subnet_group.this[*].name) : var.db_subnet_group_name
   internal_db_subnet_group_name = try(coalesce(var.db_subnet_group_name, var.name), "")
-  db_cluster_parameter_group_name = var.create_cluster_parameter_group ? aws_rds_cluster_parameter_group.this[*].name : var.db_cluster_parameter_group_name
+  db_cluster_parameter_group_name = var.create_cluster_parameter_group ? join("", aws_rds_cluster_parameter_group.this[*].name) : var.db_cluster_parameter_group_name
   internal_db_cluster_parameter_group_name = try(coalesce(var.db_cluster_parameter_group_name, var.name), "")
 }
 
@@ -54,13 +54,14 @@ resource "aws_rds_cluster" "this" {
   }
 }
 
-resource "aws_rds_cluster_instance" "this" {
-#  count              = 2
-  identifier         = aws_rds_cluster.this[*].cluster_identifier #need to be change later
-  cluster_identifier = aws_rds_cluster.this[*].id
 
-  engine              = aws_rds_cluster.this[*].engine
-  engine_version      = aws_rds_cluster.this[*].engine_version
+resource "aws_rds_cluster_instance" "this" {
+  count              = 2
+  identifier         = "${var.instance_identifier}-${count.index}" #need to be change later
+  cluster_identifier = coalesce(join("", aws_rds_cluster.this[*].id))
+
+  engine              = var.engine
+  engine_version      = var.engine_version
   instance_class      = var.instance_class
   publicly_accessible = var.publicly_accessible
 
@@ -81,7 +82,7 @@ resource "aws_rds_cluster_instance" "this" {
 
 resource "aws_db_subnet_group" "this" {
   count = var.create_cluster && var.create_db_subnet_group ? 1 : 0
-  
+
   name       = local.internal_db_subnet_group_name
   subnet_ids = var.subnet_ids
 
@@ -118,7 +119,7 @@ resource "aws_rds_cluster_parameter_group" "this" {
   count = var.create_cluster_parameter_group ? 1 : 0
 
   name        = local.internal_db_cluster_parameter_group_name
-  family      = "aurora5.6"
+  family      = "aurora-mysql5.7"
   description = "RDS default cluster parameter group"
 
   parameter {
